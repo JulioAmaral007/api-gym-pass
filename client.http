@@ -1,0 +1,11 @@
+@host = localhost:3333
+
+### Create User
+POST http://{{host}}/users
+Content-Type: application/json
+
+{
+  "name": "Júlio Cezar",
+  "email": "JULIO@gmail.team",
+  "password": "sdasdfsad5tt3465"
+}
