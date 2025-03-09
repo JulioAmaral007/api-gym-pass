@@ -1,3 +1,4 @@
+import { env } from '@/env'
 import { fastifyCors } from '@fastify/cors'
 import { fastifySwagger } from '@fastify/swagger'
 import { fastifySwaggerUi } from '@fastify/swagger-ui'
@@ -7,7 +8,7 @@ import {
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
-import { env } from './env'
+import { ZodError } from 'zod'
 import { appRoutes } from './http/routes'
 
 const app = fastify()
@@ -32,6 +33,22 @@ app.register(fastifySwaggerUi, {
 })
 
 app.register(appRoutes)
+
+app.setErrorHandler((error, _, reply) => {
+  if (error instanceof ZodError) {
+    return reply
+      .status(400)
+      .send({ message: 'Validation error.', issues: error.format() })
+  }
+
+  if (env.NODE_ENV !== 'production') {
+    console.error(error)
+  } else {
+    // TODO: Here we should log to a external tool like DataDog/NewRelic/Sentry
+  }
+
+  return reply.status(500).send({ message: 'Internal server error.' })
+})
 
 app.listen({ port: env.PORT }).then(() => {
   console.log('HTTP server running!')
